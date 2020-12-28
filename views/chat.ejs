@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"
+        integrity="sha512-+4zCK9k+qNFUR5X+cKL9EIR+ZOhtIloNl9GIKS57V1MyNsYpYcUrUeQc9vNfzsWfV28IaLL3i96P9sdNyeRssA=="
+        crossorigin="anonymous" />
+    <script>
+        const ROOM_ID = "<%= roomId %>"
+        const NAME = "<%= name %>"
+    </script>
+    <title>simple chat app</title>
+    <style>
+        body {
+            background: #EFF5F5;
+        }
+
+        .card {
+            border: none;
+        }
+
+        .chat-box {
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 500px;
+            padding: 1rem;
+            width: 100%;
+            background: white;
+
+        }
+
+        .chat-box> :first-child {
+            margin-top: auto !important;
+        }
+
+        .chat p {
+            margin: 0;
+            padding: 0;
+        }
+
+        .chat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat .name {
+            font-size: .75rem;
+            color: #EB6440;
+        }
+
+        .chat .message {
+            display: inline-block;
+
+            color: white;
+            padding: .5rem;
+            margin-top: .25rem;
+            border-radius: .85rem;
+
+        }
+
+        .chat+.chat {
+            margin-top: 1rem;
+        }
+
+        .user {
+            padding-right: 2rem;
+            align-items: flex-start;
+        }
+
+        .user .message {
+            border-top-left-radius: 0px;
+            /* background-color: #3d5a80; */
+            border: 1px solid #ABC5C7;
+            color: rgb(30, 30, 30);
+        }
+
+        .me {
+            padding-left: 2rem;
+            align-items: flex-end;
+        }
+
+        .me .message {
+            border-top-right-radius: 0px;
+            background-color: #EFF5F5;
+            color: rgb(30, 30, 30);
+        }
+
+        .my-color {
+            background: #497174;
+            color: white;
+        }
+
+        .chat-input-wrapper {
+            width: 100%;
+            display: flex;
+            --bg-color: #D6E4E5;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 8px 16px;
+            outline: none;
+            border: none;
+            background-color: var(--bg-color);
+            border-radius: .5rem;
+        }
+
+        .chat-input-btn {
+            border: none !important;
+            outline: none !important;
+            background-color: transparent;
+            padding-left: 16px;
+            color: #D6E4E5;
+        }
+
+        .chat-input-btn:hover {
+            color: #D6E4E5;
+            outline: none !important;
+            border: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container py-5" style="display: flex; justify-content: center; align-items: center;">
+        <div class="card" style="width: 25rem;">
+            <div class="card-header my-color" style="display: flex; justify-content: space-between;">
+                <p class="p-0 m-0">
+                    <%= name %>
+                </p>
+                <style>
+                    .dd-menu {
+                        text-decoration: none;
+                        color: #D6E4E5;
+                    }
+
+                    .dd-menu:hover {
+                        color: #D6E4E5;
+                    }
+                </style>
+                <div class="group" style="display: flex; align-items: center;">
+                    <a href="/<%= roomId %> " target="_blank" type="button"
+                        class="btn btn-primary btn-sm mx-3">Share</a>
+                    <div class="dropdown">
+                        <a class="dd-menu" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <li><a class="dropdown-item" href="#">Action</a></li>
+                            <li><a class="dropdown-item" href="#">Another action</a></li>
+                            <li><a class="dropdown-item" href="#">Something else here</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0 m-0">
+                <div class="chat-box">
+
+                </div>
+            </div>
+            <div class="card-footer my-color">
+                <form onsubmit="return msgSubmit()" class="chat-input-wrapper">
+                    <input autofocus type="text" id="message-val" class="chat-input" placeholder="Send the message">
+                    <button class="chat-input-btn" type="submit"><i class="fas fa-paper-plane"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="js/connection.js"></script>
+    <script>
+        const socket = io("/");
+        console.log(NAME, ROOM_ID);
+        socket.on("connect", () => {
+            console.log("socket connected");
+        });
+
+        const send = (data) => {
+            socket.emit("client-send", data, NAME);
+        };
+
+        socket.emit("join-room", ROOM_ID, NAME);
+
+        socket.on("user-disconnected", (userName) => {
+            console.log("disconnect: " + userName);
+        });
+
+        socket.on("user-connect", (userName) => {
+            console.log("New User : " + userName);
+        });
+        const msgSubmit = () => {
+            send(document.getElementById('message-val').value)
+            addMessage("me", NAME, () => {
+                const message = document.getElementById('message-val').value
+                document.getElementById('message-val').value = ""
+                return message
+            })
+            scrollDown('.chat-box')
+            return false
+        }
+        const addMessage = (sender, userName, cb) => {
+            const chatBox = document.querySelector('.chat-box')
+            const chat = document.createElement('div')
+            chat.classList.add('chat')
+            chat.classList.add(sender)
+            chat.innerHTML = `<p class="name">${userName}</p><p class="message">${cb()}</p>`
+            chatBox.appendChild(chat)
+        }
+        socket.on("client-podcast", (data, userName) => {
+            console.log(userName + ": " + data)
+            addMessage("user", userName, () => { return data })
+            scrollDown('.chat-box')
+        });
+        const scrollDown = (query) => {
+            var objDiv = document.querySelector(query)
+            console.log(objDiv.scrollTop, objDiv.scrollHeight)
+            objDiv.scrollTop = objDiv.scrollHeight
+        }
+    </script>
+    <!-- <script defer src="js/connection.js"></script> -->
+</body>
+
+</html>

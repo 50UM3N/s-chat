@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+    <title>simple chat app</title>
+</head>
+
+<body>
+    <div class="container py-5" style="display: flex; justify-content: center; align-items: center;">
+        <div class="card" style="width: 25rem;">
+            <div class="card-header">
+                S Chat
+            </div>
+            <div class="card-body">
+                <form action="/join-room" method="POST">
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">Enter your Room Id</label>
+                        <input required name="room_id" value="<%=(roomId==undefined)?"":roomId %>" class="form-control"
+                            placeholder="Room Id">
+                        <div class="form-text">You have to enter the room id to enter a specific room.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">Enter your Name</label>
+                        <input required name="name" class="form-control" placeholder="Name/Nickname">
+                        <div class="form-text">This name is display to all user present in that rooma.
+                        </div>
+                    </div>
+                    <button style="width: 100%;" type="submit" class="btn btn-primary mb-3">Join</button>
+                </form>
+                <form action="/create-room" method="POST">
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">Enter your Name</label>
+                        <input required name="name" class="form-control" placeholder="Name/Nickname">
+                        <div class="form-text">This name is display to all user present in that room.
+                        </div>
+                    </div>
+                    <button style="width: 100%;" type="submit" class="btn btn-success">Create room</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <!-- <script defer src="js/connection.js"></script> -->
+</body>
+
+</html>
